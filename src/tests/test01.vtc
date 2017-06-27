@@ -14,7 +14,7 @@ varnish v1 -vcl+backend {
 	}
 
 	sub vcl_deliver {
-		set resp.http.hello = hja.first_folder_lower("/World");
+		set resp.http.hello = hja.first_folder_lower("/World/");
 		set resp.http.info = hja.info();
 	}
 } -start

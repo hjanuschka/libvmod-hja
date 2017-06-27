@@ -70,6 +70,7 @@ vmod_info(VRT_CTX)
 
 static void first_path_to_lower(char * c) {
   int track = 0;
+  char * url = c;
   for(; *c; c++) {
     if(*c == '/' && track == 0) {
       track = 1;
@@ -84,11 +85,11 @@ static void first_path_to_lower(char * c) {
 
   }
   // Check if we have a / at the end and remove it
-  /*
-   * if(url[strlen(url)-1] == '/') {
+  
+  if(url[strlen(url)-1] == '/') {
     url[strlen(url)-1] = '\0';
   }
-  */
+  
 }
 
 VCL_STRING
