@@ -14,7 +14,7 @@ varnish v1 -vcl+backend {
 	}
 
 	sub vcl_deliver {
-		set resp.http.hello = hja.hello("World");
+		set resp.http.hello = hja.first_folder_lower("/World");
 		set resp.http.info = hja.info();
 	}
 } -start
@@ -27,7 +27,7 @@ logexpect l1 -v v1 -g raw -d 1 {
 client c1 {
 	txreq -url "/"
 	rxresp
-	expect resp.http.hello == "Hello, World"
+	expect resp.http.hello == "/world"
 	expect resp.http.info  ~  "^vmod_hja warmed at "
 }
 

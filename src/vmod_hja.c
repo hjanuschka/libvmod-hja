@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 /* need vcl.h before vrt.h for vmod_evet_f typedef */
 #include "vcl.h"
@@ -66,15 +67,44 @@ vmod_info(VRT_CTX)
 	return (info);
 }
 
+
+static void first_path_to_lower(char * c) {
+  int track = 0;
+  for(; *c; c++) {
+    if(*c == '/' && track == 0) {
+      track = 1;
+      continue;
+    }
+    if(track == 1) {
+      *c = tolower(*c);
+    }
+    if(*c == '/' && track == 1) {
+      break;
+    }
+
+  }
+  // Check if we have a / at the end and remove it
+  /*
+   * if(url[strlen(url)-1] == '/') {
+    url[strlen(url)-1] = '\0';
+  }
+  */
+}
+
 VCL_STRING
-vmod_hello(VRT_CTX, VCL_STRING name)
+vmod_first_folder_lower(VRT_CTX, VCL_STRING name)
 {
 	char *p;
 	unsigned u, v;
 
+  char * orig_string;
+  orig_string = strdup(name);
+  first_path_to_lower(orig_string);
+
 	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
 	p = ctx->ws->f;		/* Front of workspace area */
-	v = snprintf(p, u, "Hello, %s", name);
+	v = snprintf(p, u, "%s", orig_string);
+  free(orig_string);
 	v++;
 	if (v > u) {
 		/* No space, reset and leave */
