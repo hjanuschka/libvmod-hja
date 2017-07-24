@@ -78,7 +78,7 @@ static void first_path_to_lower(char *c)
     if (track == 1) {
       *c = tolower(*c);
     }
-    if (*c == '/' && track == 1) {
+    if ((*c == '/' || *c == '?') && track == 1) {
       break;
     }
   }
