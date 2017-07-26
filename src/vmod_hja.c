@@ -97,7 +97,9 @@ vmod_first_folder_lower(VRT_CTX, VCL_STRING name)
 
   char *orig_string;
   orig_string = strdup(name);
-  first_path_to_lower(orig_string);
+  if(strlen(orig_string) > 1) {
+    first_path_to_lower(orig_string);
+  }
 
   u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
   p = ctx->ws->f;             /* Front of workspace area */
