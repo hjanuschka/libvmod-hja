@@ -23,6 +23,10 @@
 #include <vtim.h>
 #include "vsb.h"
 
+static void
+synth(VRT_CTX, char *contents, unsigned long size);
+
+
 const size_t infosz = 64;
 char *info;
 
@@ -77,6 +81,14 @@ vmod_info(VRT_CTX)
   return (info);
 }
 
+void vmod_pixel(VRT_CTX)
+{
+  synth(
+              ctx,
+                      "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\xff\x00\xc0\xc0\xc0\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b",
+                              43);
+}
+
 static void first_path_to_lower(char *c)
 {
   int track = 0;
@@ -126,3 +138,15 @@ vmod_first_folder_lower(VRT_CTX, VCL_STRING name)
   WS_Release(ctx->ws, v);
   return (p);
 }
+
+static void
+synth(VRT_CTX, char *contents, unsigned long size)
+{
+    if ((ctx->method == VCL_MET_SYNTH) ||
+                (ctx->method == VCL_MET_BACKEND_ERROR)) {
+            struct vsb *vsb;
+            CAST_OBJ_NOTNULL(vsb, ctx->specific, VSB_MAGIC);
+            VSB_bcat(vsb, contents, size);
+        }
+}
+

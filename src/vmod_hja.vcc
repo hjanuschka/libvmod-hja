@@ -30,3 +30,8 @@ $Function STRING first_folder_lower(STRING)
 
 The different functions provided by the VMOD should also have their own
 embedded documentation. This section is for the hello() function.
+
+$Function VOID pixel()
+Does the same as the ``synthetic()`` primitive, but uses the contents of a
+transparent 1px GIF image. Must be used during the ``vcl_synth`` or
+``vcl_backend_error`` phases.
