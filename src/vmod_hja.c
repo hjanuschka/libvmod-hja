@@ -112,6 +112,12 @@ static void first_path_to_lower(char *c)
   }
 }
 
+int
+vmod_event_function(VRT_CTX, struct vmod_priv *priv, enum vcl_event_e e)
+{
+	return (event_function(ctx, priv, e));
+}
+
 VCL_STRING
 vmod_first_folder_lower(VRT_CTX, VCL_STRING name)
 {
