@@ -130,7 +130,7 @@ vmod_first_folder_lower(VRT_CTX, VCL_STRING name)
     first_path_to_lower(orig_string);
   }
 
-  u = WS_ReserveSize(ctx->ws, 0); /* Reserve some work space */
+  u = WS_ReserveSize(ctx->ws, strlen(orig_string)*2); /* Reserve some work space */
   p = ctx->ws->f;             /* Front of workspace area */
   v = snprintf(p, u, "%s", orig_string);
   free(orig_string);
