@@ -4,34 +4,58 @@
 # (vmodtool requires this format.)
 #
 
-$Module hja 3 Hja VMOD
+$Module hja 3 "Hja VMOD"
 
 DESCRIPTION
 ===========
 
-This is the embedded documentation for the hja VMOD. It should
-mention what the vmod is intended to do.
+Hja Varnish VMOD providing JWT (JSON Web Token) validation functionality 
+without external dependencies, along with utility functions for URL processing 
+and pixel tracking.
 
-It can span multiple lines and is written in RST format.
-You can even have links and lists in here:
+This VMOD implements JWT validation using HMAC-SHA256 signature verification 
+and expiration checking, making it suitable for authentication and authorization 
+in Varnish Cache configurations.
 
-* https://github.com/varnish/libvmod-hja/
-* https://www.varnish-cache.org/
+Features:
 
-The init-function declared next does not have documentation.
+* JWT token validation with HMAC-SHA256
+* URL path processing utilities  
+* Transparent pixel GIF generation
+* No external dependencies required
 
 $Event event_function
+
 $Function STRING info()
 
 Returns a string set by the last VCL event, demonstrating the use of
-event functions.
+event functions. Useful for debugging and monitoring VMOD lifecycle.
 
-$Function STRING first_folder_lower(STRING)
+$Function STRING first_folder_lower(STRING path)
 
-The different functions provided by the VMOD should also have their own
-embedded documentation. This section is for the hello() function.
+Converts the first folder in a URL path to lowercase. This is useful for
+normalizing API endpoints or handling case-insensitive routing.
+
+Example: "/API/users" becomes "/api/users"
+
+$Function STRING validate_jwt(STRING token, STRING secret)
+
+Validates a JWT token using the provided secret. Returns "true" if the JWT
+is valid and not expired, "false" otherwise. 
+
+The function performs comprehensive JWT validation:
+- Verifies JWT structure (header.payload.signature)
+- Validates HS256 algorithm in header
+- Performs HMAC-SHA256 signature verification
+- Checks token expiration if "exp" claim is present
+
+Only supports HS256 (HMAC-SHA256) algorithm for security and simplicity.
 
 $Function VOID pixel()
-Does the same as the ``synthetic()`` primitive, but uses the contents of a
-transparent 1px GIF image. Must be used during the ``vcl_synth`` or
-``vcl_backend_error`` phases.
+
+Generates a transparent 1x1 pixel GIF image. This function should be used
+during the ``vcl_synth`` or ``vcl_backend_error`` phases for pixel tracking,
+web beacons, or analytics purposes.
+
+The generated image is a minimal transparent GIF that can be used for
+tracking without affecting page layout.

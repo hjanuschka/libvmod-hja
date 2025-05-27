@@ -10,28 +10,54 @@ import hja;
 DESCRIPTION
 ===========
 
-Hja Varnish vmod demonstrating how to write an out-of-tree Varnish vmod.
+Hja Varnish vmod providing JWT (JSON Web Token) validation functionality without external dependencies.
 
-Implements the traditional Hello World as a vmod.
+This vmod implements JWT validation using HMAC-SHA256 signature verification and expiration checking,
+making it suitable for authentication and authorization in Varnish Cache configurations.
 
 FUNCTIONS
 =========
 
-hello
------
+validate_jwt
+------------
 
 Prototype
         ::
 
-                hello(STRING S)
+                validate_jwt(STRING token, STRING secret)
 Return value
 	STRING
 Description
-	Returns "Hello, " prepended to S
-Hja
+	Validates a JWT token using the provided secret. Returns "true" if the JWT
+	is valid and not expired, "false" otherwise. Uses HMAC-SHA256 for signature
+	verification.
+
+	The function performs the following validations:
+	- Verifies the JWT has the correct structure (header.payload.signature)
+	- Checks that the header specifies HS256 algorithm
+	- Validates the HMAC-SHA256 signature using the provided secret
+	- Checks token expiration if an "exp" claim is present
+
+Example
         ::
 
-                set resp.http.hello = hja.hello("World");
+                set req.http.jwt_valid = hja.validate_jwt(req.http.token, "MY_SECRET");
+
+first_folder_lower
+------------------
+
+Prototype
+        ::
+
+                first_folder_lower(STRING path)
+Return value
+	STRING
+Description
+	Converts the first folder in a URL path to lowercase
+Example
+        ::
+
+                set req.url = hja.first_folder_lower(req.url);
 
 INSTALLATION
 ============
@@ -85,13 +111,35 @@ overridden by passing the ``vmoddir`` variable to ``make install``.
 USAGE
 =====
 
-In your VCL you could then use this vmod along the following lines::
+JWT Validation
+--------------
+
+In your VCL you can use JWT validation along the following lines::
 
         import hja;
 
-        sub vcl_deliver {
-                # This sets resp.http.hello to "Hello, World"
-                set resp.http.hello = hja.hello("World");
+        sub vcl_recv {
+                # Validate JWT token from Authorization header
+                if (req.http.Authorization ~ "^Bearer (.+)$") {
+                        set req.http.token = regsub(req.http.Authorization, "^Bearer (.+)$", "\1");
+                        set req.http.jwt_valid = hja.validate_jwt(req.http.token, "MY_SECRET");
+                        
+                        if (req.http.jwt_valid != "true") {
+                                return (synth(401, "Unauthorized"));
+                        }
+                }
+        }
+
+Path Processing
+---------------
+
+For URL path processing::
+
+        import hja;
+
+        sub vcl_recv {
+                # Convert first folder to lowercase
+                set req.url = hja.first_folder_lower(req.url);
         }
 
 COMMON PROBLEMS
@@ -107,3 +155,11 @@ COMMON PROBLEMS
   Make sure you build this vmod against its correspondent Varnish Cache version.
   For instance, to build against Varnish Cache 4.1, this vmod must be built from
   branch 4.1.
+
+SECURITY NOTES
+==============
+
+* Keep your JWT secrets secure and use strong, randomly generated keys
+* The JWT validation only supports HS256 (HMAC-SHA256) algorithm
+* Tokens without expiration claims will not be rejected based on time
+* This implementation does not support JWT key rotation

@@ -1,0 +1,38 @@
+varnishtest "Test JWT validation"
+
+server s1 {
+       rxreq
+       txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import std;
+	import ${vmod_hja};
+
+	sub vcl_deliver {
+		# Test with real JWT tokens that work with our implementation
+		
+		# Valid token that never expires (from user's example)
+		set resp.http.jwt-valid = hja.validate_jwt("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.EpM5XBzTJZ4J8AfoJEcJrjth8pfH28LWdjLo90sYb9g", "my-secret");
+		
+		# Test with invalid token
+		set resp.http.jwt-invalid = hja.validate_jwt("invalid.token.here", "my-secret");
+		
+		# Test with wrong secret
+		set resp.http.jwt-wrong-secret = hja.validate_jwt("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.EpM5XBzTJZ4J8AfoJEcJrjth8pfH28LWdjLo90sYb9g", "wrong-secret");
+		
+		# Test with expired token (from user's example)
+		set resp.http.jwt-expired = hja.validate_jwt("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NDgzNzYxNTV9.kXF1GFHyJC0_ner0bA6b5XkQahxLVi4DFwMSkGlM4AA", "my-secret");
+	}
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+	expect resp.http.jwt-valid == "true"
+	expect resp.http.jwt-invalid == "false"
+	expect resp.http.jwt-wrong-secret == "false"
+	expect resp.http.jwt-expired == "false"
+}
+
+client c1 -run 
